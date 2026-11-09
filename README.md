@@ -4,6 +4,16 @@ A restaurant demo adapted **directly from [satnaing/shadcn-admin](https://github
 
 ## Run locally
 
+On Windows, open this project in VS Code, choose **Terminal > New Terminal**, and run:
+
+```powershell
+.\start-dev.cmd
+```
+
+Open http://127.0.0.1:5173/ and keep the terminal running. Press Ctrl+C to stop. The launcher uses an existing Node/pnpm installation, or the installed Codex runtime when those commands are not on PATH. It installs dependencies only when they are missing and does not change the system PATH.
+
+For a standard Node/pnpm environment on any supported platform:
+
 Use Node.js 24 and pnpm 11.
 
 ```sh
