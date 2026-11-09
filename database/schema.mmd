@@ -1,0 +1,20 @@
+erDiagram
+    brands ||--o{ locations : owns
+    brands ||--o{ suppliers : maintains
+    brands ||--o{ ingredients : defines
+    brands ||--o{ menu_items : offers
+    suppliers ||--o{ supplier_items : sells
+    ingredients ||--o{ supplier_items : mapped_to
+    menu_items ||--o{ recipe_items : consists_of
+    ingredients ||--o{ recipe_items : used_in
+    locations ||--o{ purchase_receipts : receives
+    suppliers ||--o{ purchase_receipts : supplies
+    purchase_receipts ||--o{ purchase_receipt_lines : contains
+    supplier_items ||--o{ purchase_receipt_lines : received_as
+    locations ||--o{ sales_batches : reports
+    sales_batches ||--o{ sales_lines : contains
+    menu_items ||--o{ sales_lines : sold_as
+    locations ||--o{ inventory_movements : records
+    ingredients ||--o{ inventory_movements : tracks
+    purchase_receipt_lines o|--o| inventory_movements : creates_receipt_movement
+    sales_lines o|--o{ inventory_movements : creates_ingredient_deductions
