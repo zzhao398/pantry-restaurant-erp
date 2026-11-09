@@ -16,7 +16,9 @@ New source: `src/features/restaurant/`, `src/routes/_authenticated/restaurant/`,
 
 Modified frontend source: the home route, sidebar data, displayed avatar initials and page metadata. The generated TanStack route tree includes the new route. Project naming, documentation, ignore rules and private static hosting metadata were adjusted. No replacement design system was introduced.
 
-Original `src/main.tsx`, authentication examples, auth store, Axios/error handling and existing example services remain unchanged. The original template does not provide a restaurant invoice, inventory, OCR or ERP backend. None has been added or implied by this adaptation. The existing Supabase project is not connected or modified.
+Original `src/main.tsx`, authentication examples, auth store, Axios/error handling and existing example services remain unchanged. The original template does not provide a restaurant invoice, inventory, OCR or ERP backend. No backend service has been added. The frontend is not connected to Supabase.
+
+On November 9, at the user's request, a separate database schema supplement was added under `database/`: invoice headers, invoice lines and review events, with duplicate-approval and receipt-link constraints. This SQL is our project-specific schema work, not code from shadcn-admin. It does not change the original template's interfaces or implement OCR, file upload, automatic review auditing or an API.
 
 Restaurant calculations in `data.ts` are browser-only demonstrations built for these pages. They are not upstream server interfaces. Original example routes are retained for reference and do not represent implemented restaurant features.
 

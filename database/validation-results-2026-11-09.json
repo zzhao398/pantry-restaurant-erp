@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-09",
+  "migration": "005_invoice_schema.sql",
+  "local": {
+    "engine": "PGlite 0.5.14",
+    "command": "node tests/invoice-schema.test.mjs <pglite-module-path>",
+    "checks_passed": 9,
+    "checks_failed": 0
+  },
+  "hosted": {
+    "provider": "Supabase",
+    "purpose": "Development project with fictional data",
+    "verification_query": "006_verify_invoice_schema.sql",
+    "checks_passed": 9,
+    "checks_failed": 0,
+    "observed_checks": [
+      "15 restaurant tables",
+      "All tables have RLS",
+      "Three invoice tables",
+      "Approved duplicate protection",
+      "Invoice tables have no API grants",
+      "API schema access remains disabled",
+      "Five original movements preserved",
+      "Original branch balances preserved",
+      "No invoice test data left in hosted database"
+    ]
+  },
+  "limitations": [
+    "Frontend remains local-demo only.",
+    "No API, OCR or authentication integration was added.",
+    "Constraint behavior was tested locally; hosted checks verify structure, grants and original data.",
+    "No concurrent-user or production-load tests were performed."
+  ]
+}
