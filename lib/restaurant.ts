@@ -44,5 +44,6 @@ export function postSales(state:State,id:string):State {
 export function approveInvoice(state:State,invoice:Invoice):State{
  if(!invoice.number.trim()||!invoice.date||!Number.isFinite(invoice.amount)||invoice.amount<=0)throw Error('Enter an invoice number, date and positive total.');
  if(state.invoices.some(i=>i.id!==invoice.id&&i.status!=='Duplicate'&&i.supplier_id===invoice.supplier_id&&i.number.trim().toLowerCase()===invoice.number.trim().toLowerCase()))throw Error('Another invoice has this supplier and invoice number. Review the duplicate first.');
- return {...state,invoices:state.invoices.map(i=>i.id===invoice.id?{...invoice,status:'Approved',note:'Reviewed in this demo.'}:i)};
+ return {...state,invoices:state.invoices.map(i=>i.id===invoice.id?{...invoice,status:'Approved'}:i)};
 }
+

@@ -68,9 +68,10 @@ or forked. Dependencies retain their own licenses; starter vendor notices remain
 TypeScript and production build pass. Nine business-rule tests pass. Browser QA
 covered receiving +1 kg, sales -300 g rice/-200 g chicken, refresh persistence,
 Queens isolation, invoice approval, duplicate rejection, 390px mobile navigation
-and demo reset. File upload and CSV download still need a full manual acceptance
+demo reset and local image upload/preview. CSV download still needs a manual acceptance
 check with representative client documents; no actual OCR results are claimed.
 
 中文：这版是可操作的纯前端演示。进入收货页面加库存，录入销量按配方扣减，
 发票可预览并手工审核。已有数据库保持原样，后续需要补充的字段与接口都在
 docs/BACKEND-HANDOFF.txt。不要把演示用本地存储当成真实业务存储。
+
