@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {seed,quantity,postReceipt,postSales,approveInvoice,formatQty} from '../lib/restaurant.ts';
+import {seed,quantity,postReceipt,postSales,approveInvoice,formatQty} from '../src/features/restaurant/data.ts';
 test('initial demo preserves the original database rice/chicken balances',()=>{const s=seed();assert.equal(quantity(s,'rice','manhattan'),7000);assert.equal(quantity(s,'chicken','manhattan'),3000);assert.equal(quantity(s,'rice','queens'),4000);assert.equal(quantity(s,'chicken','queens'),0)});
 test('posting a draft receives actual packs exactly once at its location',()=>{let s=seed();s.receipts.push({id:'new',location_id:'manhattan',supplier_id:'food',source_reference:'NEW',received_on:'2026-11-09',status:'draft',lines:[{ingredient_id:'rice',packs_received:2,quantity_per_pack_base:1000,unit_pack_cost:3}]});assert.equal(quantity(s,'rice','manhattan'),7000);s=postReceipt(s,'new');assert.equal(quantity(s,'rice','manhattan'),9000);assert.equal(quantity(s,'rice','queens'),4000);assert.strictEqual(postReceipt(s,'new'),s)});
 test('duplicate receiving references are rejected without adding inventory',()=>{const s=seed();s.receipts.push({...s.receipts[0],id:'duplicate',status:'draft'});const before=structuredClone(s.movements);assert.throws(()=>postReceipt(s,'duplicate'),/already exists/);assert.deepEqual(s.movements,before)});
@@ -10,3 +10,4 @@ test('changing a recipe does not rewrite already posted quantities',()=>{const s
 test('invoice approval changes no inventory',()=>{const s=seed(),next=approveInvoice(s,{...s.invoices[1],note:'Reviewed delivery.'});assert.equal(next.invoices[1].status,'Approved');assert.deepEqual(next.movements,s.movements)});
 test('duplicate invoice cannot be approved',()=>{const s=seed();assert.throws(()=>approveInvoice(s,s.invoices[3]),/Another invoice/)});
 test('invalid receipt quantities are rejected and base units render consistently',()=>{const s=seed();s.receipts.push({...s.receipts[0],id:'bad',source_reference:'BAD',status:'draft',lines:[{ingredient_id:'rice',packs_received:-1,quantity_per_pack_base:1000,unit_pack_cost:0}]});assert.throws(()=>postReceipt(s,'bad'),/positive/);assert.equal(formatQty(1500,'g'),'1.5 kg');assert.equal(formatQty(24,'each'),'24 each')});
+
