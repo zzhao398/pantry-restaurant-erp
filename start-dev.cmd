@@ -19,13 +19,12 @@ set "PATH=%PANTRY_RUNTIME%\dependencies\node\bin;%PANTRY_RUNTIME%\dependencies\b
 
 :run
 if /i "%~1"=="--check" goto check
-if not exist "node_modules\vite\bin\vite.js" (
-  call pnpm.cmd install
-  if errorlevel 1 exit /b 1
-)
+rem Reconcile the lockfile after pulling updates as well as on first run.
+call pnpm.cmd install --frozen-lockfile
+if errorlevel 1 exit /b 1
 echo Starting Pantry at http://127.0.0.1:5173/
 echo Keep this terminal open. Press Ctrl+C to stop.
-call pnpm.cmd dev --host 127.0.0.1 --port 5173 --strictPort
+call pnpm.cmd dev
 exit /b %ERRORLEVEL%
 
 :check

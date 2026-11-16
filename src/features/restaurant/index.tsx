@@ -52,6 +52,7 @@ import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { ConnectedRestaurant } from './connected'
 import {
   seed,
   quantity,
@@ -147,6 +148,14 @@ function exportRows(name: string, rows: (string | number)[][]) {
 }
 
 export function Restaurant({ section }: { section: string }) {
+  return import.meta.env.DEV || import.meta.env.VITE_DATA_MODE === 'api' ? (
+    <ConnectedRestaurant section={section} />
+  ) : (
+    <RestaurantDemo section={section} />
+  )
+}
+
+function RestaurantDemo({ section }: { section: string }) {
   const [data, setData] = useState<State>(() => {
     try {
       const s = JSON.parse(localStorage.getItem(KEY) || 'null')
@@ -365,6 +374,11 @@ export function Restaurant({ section }: { section: string }) {
         </div>
       </Header>
       <Main>
+        <div className='mb-4 rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground'>
+          Browser demo · This online preview uses local sample data. The GitHub
+          version includes a persistent backend; run start-dev.cmd to use the
+          connected invoice workflow.
+        </div>
         <div className='mb-6 flex flex-wrap items-center justify-between gap-4'>
           <div>
             <h1 className='text-2xl font-bold tracking-tight'>

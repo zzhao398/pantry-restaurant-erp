@@ -4,7 +4,10 @@
   "version": "2.2.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node --env-file-if-exists=.env scripts/dev.mjs",
+    "dev:frontend": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:api": "node --env-file-if-exists=.env server/index.mjs",
+    "test:backend": "node --test tests/backend.test.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -19,6 +22,8 @@
     "test:browser:install": "playwright install chromium --with-deps"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.5.14",
+    "pg": "8.16.3",
     "@clerk/react": "^6.4.3",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",

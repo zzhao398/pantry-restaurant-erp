@@ -16,7 +16,9 @@ New source: `src/features/restaurant/`, `src/routes/_authenticated/restaurant/`,
 
 Modified frontend source: the home route, sidebar data, displayed avatar initials and page metadata. The generated TanStack route tree includes the new route. Project naming, documentation, ignore rules and private static hosting metadata were adjusted. No replacement design system was introduced.
 
-Original `src/main.tsx`, authentication examples, auth store, Axios/error handling and existing example services remain unchanged. The original template does not provide a restaurant invoice, inventory, OCR or ERP backend. No backend service has been added. The frontend is not connected to Supabase.
+Original `src/main.tsx`, authentication examples, auth store, Axios/error handling and existing example services remain unchanged. The original template does not provide a restaurant invoice, inventory, OCR or ERP backend.
+
+On November 16, a project-specific Node backend (`server/`), connected screens (`connected.tsx`, `api.ts`), one-command development startup and integration tests were added. These are new project code, not upstream backend interfaces. The service uses the original project PostgreSQL schema with migration 007. It defaults to persistent local PGlite; a server-only `pg` adapter can connect to PostgreSQL/Supabase after configuration. This update did not connect to or migrate the hosted Supabase project. The Vite config adds a same-origin `/api` development proxy. Original authentication examples are still examples and do not secure this local API.
 
 On November 9, at the user's request, a separate database schema supplement was added under `database/`: invoice headers, invoice lines and review events, with duplicate-approval and receipt-link constraints. This SQL is our project-specific schema work, not code from shadcn-admin. It does not change the original template's interfaces or implement OCR, file upload, automatic review auditing or an API.
 
