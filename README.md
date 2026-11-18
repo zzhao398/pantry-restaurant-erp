@@ -14,6 +14,8 @@ On Windows, open this project in VS Code, choose **Terminal > New Terminal**, an
 
 Open http://127.0.0.1:5173/ and keep the terminal running. Press Ctrl+C to stop. One command starts both the frontend (5173) and API (3001), on loopback only. The launcher uses an existing Node/pnpm installation, or the installed Codex runtime when those commands are not on PATH. It checks dependencies against the lockfile without changing the system PATH.
 
+VS Code **Ctrl+Shift+B** starts the configured database using the included task. This development machine is configured for Supabase and shows **PostgreSQL connected**. `start-dev.cmd --local` deliberately uses the separate local database without loading `.env`. A new checkout needs its own server-only connection configuration. See [the meeting guide](docs/SCOTT-REVIEW.md) for the demonstration steps.
+
 For a standard Node/pnpm environment on any supported platform:
 
 Use Node.js 24 and pnpm 11.
@@ -60,9 +62,9 @@ Approval alone never changes stock. Reviewed invoices are locked. Only full deli
 
 The separate development database started with 12 tables for locations, suppliers, purchasing, recipes and inventory. The November 9 schema supplement adds three tables for invoice headers, invoice lines and review events, plus a constraint preventing approval of a duplicate supplier invoice number. Invoice-to-receipt references must match the same supplier and location.
 
-Migration 007 adds revision checks, tax/shipping/discount amounts, supplier-pack snapshots, immutable reviewed records and duplicate-document protection. The API reuses the original 15-table schema and receipt posting function. The local database applies the migrations automatically. Migration 007 has **not** been applied to the hosted Supabase project in this update.
+Migration 007 adds revision checks, tax/shipping/discount amounts, supplier-pack snapshots, immutable reviewed records and duplicate-document protection. The API reuses the original 15-table schema and receipt posting function. The local database applies the migrations automatically. Migration 007 was applied to the development Supabase project on November 16; all 11 structure/integrity checks and a SQL write/rollback smoke test passed. On November 18 the complete Edge -> local backend -> Supabase upload, approval and receiving workflow passed, including repeat-receipt protection, document download and restart persistence.
 
-Optional remote PostgreSQL/Supabase configuration uses a server-only `DATABASE_URL`. It does not expose SQL credentials to the browser or grant anonymous database access. See [docs/BACKEND.md](docs/BACKEND.md) and [database/README.md](database/README.md). Remote connection behavior has not been verified against the hosted project in this update.
+Remote PostgreSQL/Supabase configuration uses a server-only `DATABASE_URL`. It does not expose SQL credentials to the browser or grant anonymous database access. See [docs/BACKEND.md](docs/BACKEND.md), [database/README.md](database/README.md) and the [verified cloud workflow](docs/CLOUD-VERIFICATION.md). The API still runs locally and original document files remain on this machine.
 
 ## Where to edit
 

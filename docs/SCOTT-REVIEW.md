@@ -2,22 +2,43 @@
 
 Repository: https://github.com/zzhao398/pantry-restaurant-erp
 
+
+## Open and run for the meeting
+
+In VS Code, open this project folder and press **Ctrl+Shift+B** to run **Pantry: Start configured database (.env)**. Or run this in its terminal:
+
+```powershell
+.\start-dev.cmd
+```
+
+Open http://127.0.0.1:5173/restaurant/invoices. Keep the terminal running. Stop an existing instance with Ctrl+C before starting another; both modes use ports 5173 and 3001.
+
+**中文：** 在 VS Code 打开项目后，按 Ctrl+Shift+B 启动演示；也可在终端执行上面的命令。本机配置现在连接 Supabase，页面顶部应显示 **PostgreSQL connected**。前端和 API 在本机运行，数据库记录保存在云端。`start-dev.cmd --local` 是独立的本机数据库模式，记录不会自动同步。
+
+**Verified status, November 18:** the Edge browser -> local API -> Supabase workflow passed. A fictional PDF was uploaded, saved, approved and received through the interface. Direct cloud queries confirmed each stage. Approval left rice at 7,000 g; receiving added 2,000 g once. A repeated receipt request and a server restart retained 9,000 g, one receipt movement and four review events. The downloaded original matched the uploaded file byte for byte. See [cloud verification](CLOUD-VERIFICATION.md).
+
+**演示开场：** “This is the first working version of the manual invoice workflow. The interface connects through a local backend to Supabase. I’ve verified upload, review, receiving, duplicate-receipt prevention and persistence after a restart.”
+
+**中文：** “这是人工发票处理流程的第一个可运行版本。页面通过本机后端连接 Supabase，已经验证上传、审核、收货、防重复入库，以及重启后的数据保留。”
+
 ## Short update
 
-**English:** I have connected the shadcn-admin-based frontend to a basic local backend using our PostgreSQL schema. The current workflow supports document upload, manual invoice entry, line-item review, duplicate checks, approval or rejection, and a separate full-delivery confirmation that updates inventory once. Records persist after restarting. OCR, staff authentication and hosted Supabase integration are not completed yet. I would like to confirm the business rules before extending the workflow.
+**English:** I have connected the shadcn-admin-based frontend to a basic backend and our Supabase database. The current workflow supports document upload, manual invoice entry, line-item review, duplicate checks, approval or rejection, and a separate full-delivery confirmation that updates inventory once. I verified the full workflow in Edge and checked the resulting cloud records. OCR, staff authentication, cloud document storage and production backend hosting are not completed yet. I would like to confirm the business rules before extending the workflow.
 
-**中文：** 我已经把基于 shadcn-admin 的前端连接到了基础本地后端，沿用我们现有的 PostgreSQL 数据库结构。目前支持上传文件、手工录入发票、明细审核、重复检查、通过或拒绝审核，并在单独确认整批到货后一次性更新库存。重启后记录仍然保留。OCR、员工身份认证和线上 Supabase 接入尚未完成，希望先确认业务规则再扩展。
+**中文：** 我已经把基于 shadcn-admin 的前端连接到基础后端和 Supabase 数据库。目前支持上传文件、手工录入发票、明细审核、重复检查、通过或拒绝审核，并在单独确认整批到货后一次性更新库存。已经通过 Edge 验证完整流程并核对云端记录。OCR、员工身份认证、云端文件存储和后端正式部署尚未完成，希望先确认业务规则再扩展。
 
 ## Five-minute demo
 
-1. Run `start-dev.cmd` and open http://127.0.0.1:5173/.
+1. Run `start-dev.cmd` and open http://127.0.0.1:5173/. Check the **PostgreSQL connected** badge.
 2. Upload an example PDF/image, or select **Manual invoice**. Use fictional information only.
-3. Choose Manhattan demo and Demo Food Supply. Enter a unique invoice number and date. Set total USD 7.00.
+3. Choose Manhattan demo and Demo Food Supply. Enter a unique invoice number, such as `SCOTT-DEMO-20261118-01`, and date. Set total USD 7.00 and tax/shipping/discount to zero.
 4. Add Rice / 1 kg bag, quantity 2, unit price 3.50. Save and approve. Explain that approval does not receive stock.
 5. Confirm the full delivery. Show Receiving and Inventory: Manhattan rice increases by 2,000 g exactly once.
 6. Reopen the invoice to show its locked details, receipt link and review history. Demonstrate a mismatched total or duplicate invoice number being blocked. Refresh/restart to show persistence.
 
 The browser QA performed on November 16 left fictional local invoice `SCOTT-DEMO-001` approved and received. It changed local Manhattan rice from 7,000 g to 9,000 g. That QA record is not part of the GitHub seed and was not sent to Supabase.
+
+The November 18 cloud demonstration retained the separate fictional invoice `TEST-CLOUD-20261116-01` in Supabase. Its source PDF is dated November 16; receiving was confirmed on November 18. Cloud Manhattan rice is now 9,000 g. A new demo receipt will increase this balance again, so record the starting balance before demonstrating.
 
 ## Questions to confirm
 
@@ -32,4 +53,4 @@ The browser QA performed on November 16 left fictional local invoice `SCOTT-DEMO
 
 ## Database additions in this version
 
-Revision numbers prevent competing edits from overwriting each other. Tax/shipping/discount amounts support total checks. Supplier-pack references and size snapshots connect invoice lines to receiving. Reviewed invoices/lines are locked, review events are append-only, and unique indexes block duplicate approved files and receipt links. The original receipt/inventory tables and posting function are reused. Migration 007 is included and locally tested; it has not been applied to the hosted Supabase database in this update.
+Revision numbers prevent competing edits from overwriting each other. Tax/shipping/discount amounts support total checks. Supplier-pack references and size snapshots connect invoice lines to receiving. Reviewed invoices/lines are locked, review events are append-only, and unique indexes block duplicate approved files and receipt links. The original receipt/inventory tables and posting function are reused. Migration 007 was applied to the development Supabase database on November 16 and passed the cloud SQL checks. The full application-to-cloud integration test also passed on November 18.

@@ -12,12 +12,14 @@ The private hosted Site is static and clearly labeled as a separate browser demo
 
 ## Optional PostgreSQL / Supabase connection
 
-This adapter is implemented but the remote connection has not been verified in this update. The existing project is `restaurant-inventory-dev`; use its development database only. Never use the unrelated paid project.
+The adapter was verified against `restaurant-inventory-dev` on November 18, 2026, through the Edge upload/review/receiving workflow and direct cloud checks. Session pooling on port 5432 uses TLS certificate verification. See [CLOUD-VERIFICATION.md](CLOUD-VERIFICATION.md). Use this development database only, not the unrelated paid project.
 
-1. Review and apply `database/007_invoice_workflow.sql` once using the database owner's SQL editor. For a new database, follow the order in `database/README.md`.
+1. Migration `database/007_invoice_workflow.sql` was applied to the existing development project on November 16; do not reapply it there. For a new database, follow the order in `database/README.md`.
 2. Copy `.env.example` to `.env` locally. Set `DATABASE_URL` to the provider's PostgreSQL connection string, using the correct database user, password and TLS configuration. Store credentials only in the local ignored `.env` or a server secret store. Use certificate verification; do not set `rejectUnauthorized: false`. If the direct host is unreachable on the network, use the provider's session-pooler connection details.
 3. Set `PANTRY_BRAND_ID` to the intended restaurant brand UUID. The initial fictional brand is `10000000-0000-0000-0000-000000000001`. The configured database role must have the existing owner/admin access needed by the private schema and invoker functions. Anonymous browser roles remain denied.
 4. Restart `pnpm dev`. The header should say `PostgreSQL connected`. An invalid connection/missing migration fails startup; there is no fallback to local data.
+
+The configured machine keeps the password separately in `PGPASSWORD` inside the ignored `.env`; the connection URI omits the password, so it needs no URL encoding. The URI uses `sslmode=verify-full` and `sslrootcert=.pantry/certs/supabase-ca.crt`, downloaded from the certificate link in Supabase Database Settings. Credentials and that local certificate are not shipped with the repository. `start-dev.cmd --local` / `pnpm dev:local` explicitly choose the separate PGlite database without loading `.env`.
 
 Files remain on this machine even when SQL uses a remote database. Object storage, multi-server file access and real staff authentication need a separate deployment design. `PANTRY_REVIEWER_LABEL` is a server-configured descriptive label, **not a verified user identity**. The template's mock login / optional Clerk example is not wired to this API.
 

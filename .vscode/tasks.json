@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Pantry: Start local demo",
+      "type": "process",
+      "command": "${env:ComSpec}",
+      "args": ["/d", "/c", "start-dev.cmd", "--local"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Pantry: Start configured database (.env)",
+      "type": "process",
+      "command": "${env:ComSpec}",
+      "args": ["/d", "/c", "start-dev.cmd"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}

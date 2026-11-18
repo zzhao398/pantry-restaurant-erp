@@ -1,6 +1,10 @@
 import { createServer } from 'vite'
 import { startApi } from '../server/index.mjs'
 
+// Explicit presentation mode: do not use a cloud URL inherited from the shell.
+// This command does not load .env and leaves its contents unchanged.
+if (process.argv.includes('--local')) delete process.env.DATABASE_URL
+
 let closeApi, vite
 try {
   closeApi = await startApi()

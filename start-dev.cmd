@@ -24,7 +24,13 @@ call pnpm.cmd install --frozen-lockfile
 if errorlevel 1 exit /b 1
 echo Starting Pantry at http://127.0.0.1:5173/
 echo Keep this terminal open. Press Ctrl+C to stop.
+if /i "%~1"=="--local" goto local
 call pnpm.cmd dev
+exit /b %ERRORLEVEL%
+
+:local
+echo Using the local database for the Scott demo.
+call pnpm.cmd dev:local
 exit /b %ERRORLEVEL%
 
 :check
