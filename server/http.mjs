@@ -1,7 +1,8 @@
-import { ZodError } from 'zod'
+import { z, ZodError } from 'zod'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import path from 'node:path'
+import { extractInvoice, failedExtraction } from './ocr.mjs'
 import { ApiError, createService } from './service.mjs'
 
 const MAX_FILE = 10 * 1024 * 1024
@@ -53,8 +54,32 @@ async function json(req) {
     throw new ApiError(400, 'Invalid JSON')
   }
 }
-export function createHandler(db, { uploadDirectory, ...options }) {
+export function createHandler(
+  db,
+  { uploadDirectory, extractDocument = extractInvoice, ...options }
+) {
   const service = createService(db, options)
+  const filePath = (key) => {
+    if (!/^[a-f0-9-]{36}\.(pdf|png|jpg|webp)$/.test(key || ''))
+      throw new ApiError(404, 'Document unavailable')
+    return path.join(uploadDirectory, key)
+  }
+  const withExtraction = async (detail) => {
+    if (!detail.document_storage_path) return detail
+    try {
+      return {
+        ...detail,
+        extraction: JSON.parse(
+          await readFile(
+            filePath(detail.document_storage_path) + '.ocr.json',
+            'utf8'
+          )
+        ),
+      }
+    } catch {
+      return detail
+    }
+  }
   return async (req, res) => {
     const send = (status, value) => {
       res.writeHead(status, {
@@ -81,10 +106,11 @@ export function createHandler(db, { uploadDirectory, ...options }) {
       if (req.method === 'GET' && pathname === '/api/workspace')
         return send(200, await service.workspace())
       const match = pathname.match(
-        /^\/api\/invoices\/([a-f0-9-]{36})(?:\/(review|receive|document))?$/i
+        /^\/api\/invoices\/([a-f0-9-]{36})(?:\/(review|receive|document|extract))?$/i
       )
       if (req.method === 'GET' && match) {
-        if (!match[2]) return send(200, await service.detail(match[1]))
+        if (!match[2])
+          return send(200, await withExtraction(await service.detail(match[1])))
         if (match[2] === 'document') {
           const doc = await service.document(match[1])
           if (!/^[a-f0-9-]{36}\.(pdf|png|jpg|webp)$/.test(doc.key))
@@ -109,6 +135,57 @@ export function createHandler(db, { uploadDirectory, ...options }) {
         throw new ApiError(404, 'Endpoint not found')
       if (req.headers['x-pantry-request'] !== '1')
         throw new ApiError(403, 'Missing application request header')
+      if (match && req.method === 'POST' && match[2] === 'extract') {
+        const input = z
+          .object({ revision: z.number().int().positive() })
+          .strict()
+          .parse(await json(req))
+        const before = await service.detail(match[1])
+        if (
+          before.status !== 'needs_review' ||
+          before.revision !== input.revision
+        )
+          throw new ApiError(
+            409,
+            'The invoice changed or was reviewed. Reload before extracting.'
+          )
+        const doc = await service.document(match[1])
+        const filename = filePath(doc.key)
+        const cached = await withExtraction(before)
+        let extraction = cached.extraction
+        if (extraction?.status !== 'complete') {
+          const workspace = await service.workspace()
+          try {
+            extraction = await extractDocument(filename, workspace)
+          } catch {
+            extraction = failedExtraction(
+              'Recognition failed. The original is saved; enter details manually.'
+            )
+          }
+          try {
+            await writeFile(
+              filename + '.ocr.json',
+              JSON.stringify(extraction),
+              { mode: 0o600 }
+            )
+          } catch {
+            extraction.warnings.push(
+              'The extraction could not be retained on disk. Save your checked form before leaving this page.'
+            )
+          }
+        }
+        const current = await service.detail(match[1])
+        if (
+          current.status !== 'needs_review' ||
+          current.revision !== input.revision
+        )
+          throw new ApiError(
+            409,
+            'The invoice changed during extraction. Reload to preserve the latest edits.'
+          )
+        // Suggestions are returned separately; only an explicit save writes invoice fields.
+        return send(200, { ...current, extraction })
+      }
       if (req.method === 'POST' && pathname === '/api/invoices') {
         if (!req.headers['content-type']?.startsWith('multipart/form-data'))
           return send(201, await service.create(await json(req)))
@@ -164,11 +241,20 @@ export function createHandler(db, { uploadDirectory, ...options }) {
         }
       }
       if (match && req.method === 'PUT' && !match[2])
-        return send(200, await service.save(match[1], await json(req)))
+        return send(
+          200,
+          await withExtraction(await service.save(match[1], await json(req)))
+        )
       if (match && req.method === 'POST' && match[2] === 'review')
-        return send(200, await service.review(match[1], await json(req)))
+        return send(
+          200,
+          await withExtraction(await service.review(match[1], await json(req)))
+        )
       if (match && req.method === 'POST' && match[2] === 'receive')
-        return send(200, await service.receive(match[1], await json(req)))
+        return send(
+          200,
+          await withExtraction(await service.receive(match[1], await json(req)))
+        )
       throw new ApiError(404, 'Endpoint not found')
     } catch (e) {
       if (e instanceof ZodError)

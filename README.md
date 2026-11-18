@@ -1,8 +1,8 @@
 # Pantry — Restaurant Invoice Workflow
 
-A restaurant application adapted **directly from [satnaing/shadcn-admin](https://github.com/satnaing/shadcn-admin)** (MIT). The original React/Vite layout and UI components are retained. A basic Node.js backend now supports a manual invoice-to-inventory workflow using the project's PostgreSQL schema.
+A restaurant application adapted **directly from [satnaing/shadcn-admin](https://github.com/satnaing/shadcn-admin)** (MIT). The original React/Vite layout and UI components are retained. A basic Node.js backend supports invoice extraction, human review and receiving using the project's PostgreSQL schema.
 
-**Status: local development prototype, ready for workflow review with Scott.** It is not a production ERP or an implemented OCR system. The local app uses persistent database records; the private hosted static preview remains a separately labeled browser demo.
+**Status: local development prototype, ready for workflow review with Scott.** Basic English OCR is implemented with local Tesseract.js and PDF.js; it needs human verification and is not a production ERP. The local app uses persistent database records; the private hosted static preview remains a separately labeled browser demo.
 
 ## Run locally
 
@@ -32,6 +32,8 @@ Validation:
 ```sh
 pnpm build
 pnpm test:backend
+pnpm test:ocr
+pnpm test:ocr-form
 node --experimental-strip-types --test tests/restaurant.test.mjs
 node tests/invoice-schema.test.mjs
 ```
@@ -39,13 +41,15 @@ node tests/invoice-schema.test.mjs
 ## Basic invoice workflow
 
 1. Upload a PDF/image (up to 10 MB), or create a manual invoice.
-2. Enter supplier, invoice number/date/total and lines. Map inventory lines to supplier packs.
+2. Uploaded files are automatically scanned and recognized fields fill the review form. Check supplier, invoice number/date, amounts and lines against the original. Match every line to its supplier pack. Unrecognized values need manual entry.
 3. Save details. The API validates references and amounts, stores pack-size snapshots and records a review event.
 4. Approve after checking the original document. Line totals + tax + shipping - discount must match the invoice total. Duplicate approved supplier/number combinations and identical uploaded documents are blocked. Reject/duplicate actions require a reason.
 5. Confirm the full delivery separately. The backend creates one receipt and calls the existing `restaurant.post_receipt` function. Concurrent/repeated confirmation cannot add the goods twice.
 6. Inspect receiving, inventory movements and invoice CSV reports from the same database.
 
 Approval alone never changes stock. Reviewed invoices are locked. Only full deliveries of mapped inventory lines are supported; partial receipts, corrections, existing-receipt matching and credit notes await business confirmation. Sales and recipes are read-only in the connected version. Reviewer labels are explicitly unverified: the template's example login is not backend authentication.
+
+Try the fictional PNG, scanned PDF or searchable PDF in [examples/invoices](examples/invoices). Each has invoice `OCR-DEMO-001`, two rice bags and one chicken pack, total USD 17.00. Use a unique invoice number for additional approval demos. Basic extraction supports English/USD, standard item tables, 5 PDF pages, 10 MB files and 12-megapixel images. No API key is needed and documents are not sent to an external OCR service. See [OCR implementation and limits](docs/OCR.md).
 
 ## What changed from the template
 

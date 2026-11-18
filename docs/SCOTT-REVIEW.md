@@ -2,7 +2,6 @@
 
 Repository: https://github.com/zzhao398/pantry-restaurant-erp
 
-
 ## Open and run for the meeting
 
 In VS Code, open this project folder and press **Ctrl+Shift+B** to run **Pantry: Start configured database (.env)**. Or run this in its terminal:
@@ -23,17 +22,17 @@ Open http://127.0.0.1:5173/restaurant/invoices. Keep the terminal running. Stop 
 
 ## Short update
 
-**English:** I have connected the shadcn-admin-based frontend to a basic backend and our Supabase database. The current workflow supports document upload, manual invoice entry, line-item review, duplicate checks, approval or rejection, and a separate full-delivery confirmation that updates inventory once. I verified the full workflow in Edge and checked the resulting cloud records. OCR, staff authentication, cloud document storage and production backend hosting are not completed yet. I would like to confirm the business rules before extending the workflow.
+**English:** I have connected the shadcn-admin-based frontend to a basic backend and our Supabase database. I added basic local OCR and PDF extraction: uploading an invoice fills a draft form for human verification. Users check and save the details, approve or reject the invoice, and confirm actual delivery separately to update inventory once. The system checks totals and duplicates. OCR currently supports basic English invoice layouts; staff authentication, cloud document storage and production backend hosting remain pending. I would like sample supplier invoices and confirmation of the business rules before extending the workflow.
 
-**中文：** 我已经把基于 shadcn-admin 的前端连接到基础后端和 Supabase 数据库。目前支持上传文件、手工录入发票、明细审核、重复检查、通过或拒绝审核，并在单独确认整批到货后一次性更新库存。已经通过 Edge 验证完整流程并核对云端记录。OCR、员工身份认证、云端文件存储和后端正式部署尚未完成，希望先确认业务规则再扩展。
+**中文：** 我已经把基于 shadcn-admin 的前端连接到基础后端和 Supabase，并加入基础本地 OCR 和 PDF 提取。上传后自动填写待核对表单，人工检查并保存后进行审核，实际到货再单独确认入库。系统会核对金额和检查重复。OCR 目前支持基础英文发票，员工认证、云端文件存储和正式部署尚未完成，希望获取供应商样本并确认业务规则。
 
 ## Five-minute demo
 
 1. Run `start-dev.cmd` and open http://127.0.0.1:5173/. Check the **PostgreSQL connected** badge.
-2. Upload an example PDF/image, or select **Manual invoice**. Use fictional information only.
-3. Choose Manhattan demo and Demo Food Supply. Enter a unique invoice number, such as `SCOTT-DEMO-20261118-01`, and date. Set total USD 7.00 and tax/shipping/discount to zero.
-4. Add Rice / 1 kg bag, quantity 2, unit price 3.50. Save and approve. Explain that approval does not receive stock.
-5. Confirm the full delivery. Show Receiving and Inventory: Manhattan rice increases by 2,000 g exactly once.
+2. Choose Manhattan demo and upload `examples/invoices/ocr-demo-scan.pdf` or `ocr-demo.png`. Wait for the extracted form and expand **Show extracted text**.
+3. Verify Demo Food Supply, invoice date, two rice bags at 3.50, one chicken pack at 8.00, tax 1.00, shipping 2.00, discount 1.00, total USD 17.00. Use a unique invoice number for repeated demos.
+4. Check supplier-pack matches, correct any field, save and approve. Explain that OCR suggestions require human review and approval does not receive stock.
+5. Confirm the full delivery. Show Receiving and Inventory: Manhattan rice increases by 2,000 g and chicken by 1,000 g exactly once.
 6. Reopen the invoice to show its locked details, receipt link and review history. Demonstrate a mismatched total or duplicate invoice number being blocked. Refresh/restart to show persistence.
 
 The browser QA performed on November 16 left fictional local invoice `SCOTT-DEMO-001` approved and received. It changed local Manhattan rice from 7,000 g to 9,000 g. That QA record is not part of the GitHub seed and was not sent to Supabase.

@@ -26,6 +26,7 @@ export type InvoiceRecord = {
   reviewed_at: string | null
 }
 export type InvoiceDetail = InvoiceRecord & {
+  extraction?: InvoiceExtraction
   lines: {
     id: string
     description: string
@@ -46,6 +47,23 @@ export type InvoiceDetail = InvoiceRecord & {
     InvoiceRecord,
     'id' | 'invoice_number' | 'status' | 'original_file_name'
   >[]
+}
+export type InvoiceExtraction = {
+  status: 'complete' | 'failed'
+  method: string | null
+  text: string
+  vendor: string
+  warnings: string[]
+  fields: {
+    supplier_id: string | null
+    invoice_number: string
+    invoice_date: string | null
+    total_amount: number | null
+    tax_amount: number | null
+    shipping_amount: number | null
+    discount_amount: number | null
+    lines: InvoiceForm['lines']
+  } | null
 }
 export type Workspace = {
   mode: string

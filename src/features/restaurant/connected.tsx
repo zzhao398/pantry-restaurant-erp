@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router'
 import {
   Download,
   FileText,
+  LoaderCircle,
   Plus,
   RefreshCw,
   Trash2,
@@ -35,11 +36,11 @@ import { Main } from '@/components/layout/main'
 import { ThemeSwitch } from '@/components/theme-switch'
 import {
   request,
-  toForm,
   type InvoiceDetail,
   type InvoiceForm,
   type Workspace,
 } from './api'
+import { extractionForm } from './extraction-form'
 
 const selectClass = 'h-9 min-w-0 rounded-md border bg-background px-2 text-sm'
 const titles: Record<string, string> = {
@@ -146,6 +147,7 @@ export function ConnectedRestaurant({ section }: { section: string }) {
     [dirty, setDirty] = useState(false)
   const [receivedOn, setReceivedOn] = useState(today),
     [confirmed, setConfirmed] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const upload = useRef<HTMLInputElement>(null)
   const supplierName = (id: string | null) =>
     data?.suppliers.find((s) => s.id === id)?.name || 'Not assigned'
@@ -157,8 +159,10 @@ export function ConnectedRestaurant({ section }: { section: string }) {
   const invoices = data?.invoices.filter((i) => scoped(i.location_id)) || []
   const selectDetail = (d: InvoiceDetail) => {
     setDetail(d)
-    setForm(toForm(d))
-    setDirty(false)
+    setForm(extractionForm(d))
+    setDirty(
+      d.revision === 1 && d.status === 'needs_review' && !!d.extraction?.fields
+    )
     setConfirmed(false)
     setReceivedOn(today())
   }
@@ -199,9 +203,26 @@ export function ConnectedRestaurant({ section }: { section: string }) {
         body.set('file', file)
         payload = body
       }
-      selectDetail(await request<InvoiceDetail>('/invoices', 'POST', payload))
+      const created = await request<InvoiceDetail>('/invoices', 'POST', payload)
+      selectDetail(created)
+      if (file) await extract(created)
       await query.refetch()
     })
+  }
+  async function extract(invoice: InvoiceDetail) {
+    setScanning(true)
+    try {
+      const result = await request<InvoiceDetail>(
+        `/invoices/${invoice.id}/extract`,
+        'POST',
+        { revision: invoice.revision }
+      )
+      selectDetail(result)
+      if (result.extraction?.status === 'complete')
+        toast.success('Extraction ready. Check every value, then save details.')
+    } finally {
+      setScanning(false)
+    }
   }
   function change(patch: Partial<InvoiceForm>) {
     setForm((f) => (f ? { ...f, ...patch } : f))
@@ -240,7 +261,7 @@ export function ConnectedRestaurant({ section }: { section: string }) {
   function exportReport() {
     const cell = (v: unknown) => {
       let s = String(v ?? '')
-      if (/^[=+@\-]/.test(s)) s = "'" + s
+      if (/^[=+@-]/.test(s)) s = "'" + s
       return '"' + s.replace(/"/g, '""') + '"'
     }
     const csv = [
@@ -361,7 +382,7 @@ export function ConnectedRestaurant({ section }: { section: string }) {
               {titles[section] || 'Page not found'}
             </h1>
             <p className='mt-1 text-sm text-muted-foreground'>
-              Basic manual invoice workflow · development workspace
+              Invoice extraction & human review · development workspace
             </p>
           </div>
           <Button
@@ -378,8 +399,8 @@ export function ConnectedRestaurant({ section }: { section: string }) {
           {data?.mode === 'postgres'
             ? 'the configured PostgreSQL database'
             : 'the local PostgreSQL-compatible database'}
-          . Initial restaurant records are fictional. OCR and staff accounts are
-          not connected.
+          . Initial restaurant records are fictional. Basic English invoice
+          extraction is available; staff accounts are not connected.
         </div>
         {query.isPending && <p role='status'>Connecting to the database…</p>}
         {query.error && (
@@ -464,8 +485,9 @@ export function ConnectedRestaurant({ section }: { section: string }) {
                   />
                 </div>
                 <p className='mb-4 text-sm text-muted-foreground'>
-                  PDF or image up to 10 MB. Enter the details manually, save,
-                  review, then confirm the actual delivery.
+                  PDF or image up to 10 MB; up to 5 PDF pages. Upload to extract
+                  English invoice details, check and save the form, then
+                  approve.
                 </p>
                 <div className='mb-4 flex flex-wrap gap-3'>
                   <Input
@@ -694,8 +716,9 @@ export function ConnectedRestaurant({ section }: { section: string }) {
                   </p>
                   <p>
                     Local operator labels are not authenticated identities.
-                    Partial receiving, corrections, credit notes, OCR, staff
-                    access and cloud deployment are pending review with Scott.
+                    Partial receiving, corrections, credit notes, advanced
+                    extraction, staff access and cloud deployment are pending
+                    review with Scott.
                   </p>
                   <p>
                     Template:{' '}
@@ -776,6 +799,60 @@ export function ConnectedRestaurant({ section }: { section: string }) {
                   {error}
                 </p>
               )}
+              {scanning && (
+                <div
+                  role='status'
+                  className='flex items-center gap-2 rounded-md border p-3 text-sm'
+                >
+                  <LoaderCircle className='size-4 animate-spin' />
+                  Reading invoice… This may take up to 90 seconds. Your original
+                  is saved.
+                </div>
+              )}
+              {detail.extraction && (
+                <section className='space-y-2 rounded-lg border border-amber-500/60 bg-amber-500/5 p-3 text-sm'>
+                  <strong>
+                    {detail.extraction.status === 'complete'
+                      ? 'Extracted suggestions — verify against the original'
+                      : 'Extraction needs manual input'}
+                  </strong>
+                  <p>
+                    Check supplier, date, amounts, item quantities and pack
+                    matches. Only Save details writes these values to the
+                    database; approval and receiving remain separate.
+                  </p>
+                  {detail.extraction.vendor && (
+                    <p>Detected supplier: {detail.extraction.vendor}</p>
+                  )}
+                  <ul className='list-disc space-y-1 pl-5'>
+                    {detail.extraction.warnings.map((warning, i) => (
+                      <li key={i}>{warning}</li>
+                    ))}
+                  </ul>
+                  {!!detail.extraction.text && (
+                    <details>
+                      <summary className='cursor-pointer font-medium'>
+                        Show extracted text
+                      </summary>
+                      <pre className='mt-2 max-h-64 overflow-auto rounded border bg-background p-3 text-xs break-words whitespace-pre-wrap'>
+                        {detail.extraction.text}
+                      </pre>
+                    </details>
+                  )}
+                </section>
+              )}
+              {!locked &&
+                detail.revision === 1 &&
+                detail.original_file_name &&
+                detail.extraction?.status !== 'complete' && (
+                  <Button
+                    variant='outline'
+                    disabled={busy || dirty}
+                    onClick={() => void run(() => extract(detail))}
+                  >
+                    Extract invoice details
+                  </Button>
+                )}
               {!!detail.possible_duplicates.length && (
                 <div className='rounded-md border border-amber-500 p-3 text-sm'>
                   <strong>Possible duplicate</strong>
@@ -895,9 +972,8 @@ export function ConnectedRestaurant({ section }: { section: string }) {
                   </Button>
                 </div>
                 <p className='text-xs text-muted-foreground'>
-                  Quantity is the number of supplier packs. An unmapped line can
-                  be reviewed, but this version requires every line to map to a
-                  pack before receiving.
+                  Quantity is the number of supplier packs. Match every line to
+                  the correct pack before approval; verify any suggested match.
                 </p>
                 {form.lines.map((l, index) => (
                   <div

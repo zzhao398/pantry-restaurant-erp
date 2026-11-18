@@ -1,0 +1,50 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 569 >>
+stream
+BT /F1 10 Tf 35 750 Td 18 TL (Demo Food Supply) Tj
+T* (INVOICE) Tj
+T* (Invoice Number: OCR-DEMO-001) Tj
+T* (Invoice Date: 2026-11-18) Tj
+T* (Bill To: Example Kitchen) Tj
+T* (Description                 Qty    Unit Price    Amount) Tj
+T* (RICE-1KG Rice bag             2         3.50        7.00) Tj
+T* (CHICKEN-1KG Chicken pack      1         8.00        8.00) Tj
+T* (Subtotal: 15.00) Tj
+T* (Tax: 1.00) Tj
+T* (Shipping: 2.00) Tj
+T* (Discount: 1.00) Tj
+T* (Total: 17.00) Tj
+T* (Currency: USD) Tj
+T* (Fictional invoice for software testing only. No payment is due.) Tj ET
+endstream
+endobj
+5 0 obj
+<< >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Resources << /Font << /F1 3 0 R >> /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000183 00000 n 
+0000000803 00000 n 
+0000000824 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+976
+%%EOF

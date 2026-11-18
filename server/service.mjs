@@ -196,7 +196,7 @@ export function createService(
           id,
           'saved',
           document.key
-            ? 'Document uploaded; manual extraction required.'
+            ? 'Document uploaded; extraction suggestions require human verification.'
             : 'Manual invoice created.'
         )
       })
@@ -294,6 +294,7 @@ export function createService(
             tx,
             `SELECT count(*)::int AS n,
             bool_and(quantity IS NOT NULL AND unit_price IS NOT NULL AND line_total IS NOT NULL AND line_total=round(quantity*unit_price,4)) AS valid,
+            bool_and(supplier_item_id IS NOT NULL AND quantity_per_pack_base IS NOT NULL) AS mapped,
             coalesce(sum(line_total),0) + $3::numeric + $4::numeric - $5::numeric = $6::numeric AS balanced
             FROM restaurant.invoice_lines WHERE brand_id=$1 AND invoice_id=$2`,
             [
@@ -309,6 +310,11 @@ export function createService(
             throw new ApiError(
               400,
               'Line totals + tax + shipping - discount must equal the invoice total'
+            )
+          if (!checks.mapped)
+            throw new ApiError(
+              400,
+              'Match every line to a supplier pack before approval so the invoice can be received.'
             )
           // Serialize different invoices for the same vendor before checking number/hash duplicates.
           await tx.query(

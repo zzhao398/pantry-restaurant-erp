@@ -39,4 +39,10 @@ Open http://127.0.0.1:5173/restaurant/invoices in Edge. Do not start a second se
 
 **中文：** 前端现在通过后端连接 Supabase。已经验证完整的人工发票到库存流程，包括防止重复入库和重启后的数据保留。
 
-OCR, real staff authentication, partial deliveries, correction workflows, cloud document storage and production backend hosting remain future work. The existing private static Site still uses its separate browser demo.
+Real staff authentication, partial deliveries, correction workflows, cloud document storage and production backend hosting remain future work. The existing private static Site still uses its separate browser demo.
+
+## Basic OCR follow-up — November 18
+
+Basic local English OCR and PDF extraction have now been added. A fictional image-only PDF was uploaded through the HTTP API to the configured Supabase development workflow. It produced two item suggestions and a USD 17.00 total. In Edge, opening the draft visibly filled supplier, invoice number/date, amounts and both supplier-pack mappings. The invoice number was manually changed to `OCR-CLOUD-20261118-01`, saved through the interface and reloaded without losing that change. Direct PostgreSQL queries confirmed revision 2, two saved lines, `needs_review`, no receipt, and unchanged stock (rice 9,000 g; chicken 3,000 g).
+
+The browser's automated file chooser did not complete, so file upload itself was verified through the same multipart API used by the page. Form filling, manual correction, saving and reloading were verified in Edge. OCR-to-approval-to-receiving and duplicate-receiving protection were tested in an isolated local database. The retained cloud OCR draft is deliberately left for human review. See [OCR.md](OCR.md) for scope and implementation.

@@ -1,3 +1,5 @@
 allowBuilds:
   esbuild: true
   '@clerk/shared': false
+  # This dependency's postinstall only displays a donation message.
+  tesseract.js: false

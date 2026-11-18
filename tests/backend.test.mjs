@@ -314,20 +314,23 @@ test('HTTP invoice workflow, validation and inventory transactions', async (t) =
       }
     )
     await t.test(
-      'unmapped invoice can be reviewed but receiving remains blocked',
+      'unmapped invoice stays editable until packs are matched for approval',
       async () => {
         let i = (await call('/invoices', 'POST', { location_id: L })).body
         const d = draft(1, 'UNMAPPED')
         d.lines[0].supplier_item_id = null
         i = (await call(`/invoices/${i.id}`, 'PUT', d)).body
-        i = (
-          await call(`/invoices/${i.id}/review`, 'POST', {
-            revision: i.revision,
-            action: 'approved',
-            note: '',
-          })
-        ).body
-        assert.equal(i.status, 'approved')
+        const review = await call(`/invoices/${i.id}/review`, 'POST', {
+          revision: i.revision,
+          action: 'approved',
+          note: '',
+        })
+        assert.equal(review.status, 400)
+        assert.match(review.body.error, /supplier pack/)
+        assert.equal(
+          (await call(`/invoices/${i.id}`)).body.status,
+          'needs_review'
+        )
         assert.equal(
           (
             await call(`/invoices/${i.id}/receive`, 'POST', {
@@ -335,7 +338,7 @@ test('HTTP invoice workflow, validation and inventory transactions', async (t) =
               received_on: '2026-11-16',
             })
           ).status,
-          400
+          409
         )
         assert.equal(await total(), 9000)
       }
